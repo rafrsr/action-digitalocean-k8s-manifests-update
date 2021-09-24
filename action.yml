@@ -1,0 +1,29 @@
+name: 'Manefifests Update'
+description: 'Update k8s manifests files'
+inputs:
+  manifests:
+    description: 'Where are located manifest files to update'
+    required: true
+  repository:
+    description: 'Digital Ocean Repository'
+    required: true
+  tag:
+    description: 'Tag to use'
+runs:
+  using: "composite"
+  steps:
+      - uses: benjlevesque/short-sha@v1.2
+        id: short-sha
+
+      - name: Prepare manifests
+        uses: Slidem/inplace-envsubst-action@v1.2.2
+        env:
+          IMAGE: registry.digitalocean.com/${{ inputs.repository }}:${{ inputs.tag || steps.short-sha.outputs.sha }}
+        with:
+          working-directory: ${{ inputs.manifests }}
+          fail_on_missing_variables: false
+          search_input: |
+            {
+              "patterns": [".+.yaml", ".+.yml"],
+              "depth": 3
+            }
